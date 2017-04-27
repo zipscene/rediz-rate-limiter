@@ -1,0 +1,8 @@
+{
+	"name": "zs-rediz-rate-limiter",
+	"description": "ZS Library: zs-rediz-rate-limiter",
+	"options": {
+		"outdir": "./docs",
+		"exclude": "dist,tmp,test,node_modules"
+	}
+}
