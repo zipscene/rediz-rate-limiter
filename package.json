@@ -10,14 +10,16 @@
   "keywords": [
 	  "redis",
 	  "rediz",
-	  "rate-limit"  
+	  "rate-limit"
   ],
   "scripts": {
     "build": "rm -rf dist && broccoli build dist; chmod -f u+x dist/bin/*; rm -rf tmp",
     "docs": "yuidoc .",
     "lint": "eslint . || exit 0",
     "prepublish": "npm run build && npm run docs",
-    "test": "npm run build && mocha ./dist/test --recursive -R spec"
+	"unit": "npm run build && mocha ./dist/test/setup.js ./dist/test/unit --recursive -R spec",
+    "integration": "npm run build && mocha ./dist/test/setup.js ./dist/test/integration --recursive -R spec",
+    "test": "npm run unit; npm run integration"
   },
   "dependencies": {
     "babel-runtime": "6.23.0",
