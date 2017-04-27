@@ -8,16 +8,16 @@
     "url": "https://github.com/zipscene/rediz-rate-limiter.git"
   },
   "keywords": [
-	  "redis",
-	  "rediz",
-	  "rate-limit"
+    "redis",
+    "rediz",
+    "rate-limit"
   ],
   "scripts": {
     "build": "rm -rf dist && broccoli build dist; chmod -f u+x dist/bin/*; rm -rf tmp",
     "docs": "yuidoc .",
     "lint": "eslint . || exit 0",
     "prepublish": "npm run build && npm run docs",
-	"unit": "npm run build && mocha ./dist/test/setup.js ./dist/test/unit --recursive -R spec",
+    "unit": "npm run build && mocha ./dist/test/setup.js ./dist/test/unit --recursive -R spec",
     "integration": "npm run build && mocha ./dist/test/setup.js ./dist/test/integration --recursive -R spec",
     "test": "npm run unit; npm run integration"
   },
@@ -40,6 +40,8 @@
     "eslint": "^3.19.0",
     "eslint-config-zipscene": "^0.2.3",
     "mocha": "^3.3.0",
+    "sinon": "^2.1.0",
+    "sinon-chai": "^2.9.0",
     "source-map-support": "^0.4.14",
     "yuidocjs": "^0.10.2"
   }
