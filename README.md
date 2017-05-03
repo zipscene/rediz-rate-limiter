@@ -57,8 +57,8 @@ Keys with a different prefix will be separated from each other, even if they
 are otherwise the same.
 
 ```js
-// This instance will prefix keys with 'rzrate:asdf:'
 let limiter = new RateLimiter(client);
+// This instance will prefix keys with 'rzrate:asdf:'
 let otherLimiter = new RateLimiter(client, { prefix: 'asdf' });
 
 // First check will resolve
