@@ -11,10 +11,6 @@ Check calls with the same key will be tracked together, regardless of which
 process the call was made in, assuming the same redis database is used by
 each process.
 
-The check method requires a completion rate and burst count with each call.
-These can be changed between check calls to the same key, though in practice
-they usually should remain the same.
-
 ```js
 const RateLimiter = require('rediz-rate-limiter');
 const RedizClient = require('rediz');
@@ -24,6 +20,7 @@ let client = new RedizClient({ /* redis config */});
 let limiter = new RateLimiter(client);
 
 
+// Check arguments take the form key, rate in Hz, max burst count.
 // At most one per 2 seconds.
 let check = () => limiter.check('key', 0.5, 1);
 
@@ -55,21 +52,38 @@ otherCheck()
 
 ## Custom Prefix
 By default, `rediz-rate-limiter` prefixes keys with 'rzrate:' before storing
-them in redis. This prefix can be changed with the RateLimiter constructor.
+them in redis. An additional prefix can be set by the `RateLimiter` constructor.
 Keys with a different prefix will be separated from each other, even if they
 are otherwise the same.
 
 ```js
-let asdfLimiter = new RateLimiter(client, 'asdf:');
+// This instance will prefix keys with 'rzrate:asdf:'
+let limiter = new RateLimiter(client);
+let otherLimiter = new RateLimiter(client, { prefix: 'asdf' });
 
-// At most one per 10 seconds.
-let asdfCheck = () => asdfLimiter.check('key', 0.1, 1);
-
-// First check will also resolve
-check()
+// First check will resolve
+limiter.check(limiter.check('key', 0.1, 1))
 	// Second check will also resolve because it has a different prefix.
-	.then(check)
+	.then(otherLimiter.check('key', 0.1, 1))
 
+```
+
+## Default Rate and Burst Count
+A default rate and burst count for an instance can be set with the `RateLimiter`
+constructor. These will be used if the corresponding arguments are omitted from
+the `check` method.
+
+```js
+// At most two per 5 seconds
+let limiter = new RateLimiter(client, {
+	rate: 0.2
+	burst: 2
+});
+
+limiter.check('key')
+	.then(() =>  limiter.check('key'))
+	// Next check will reject
+	.then(() =>  limiter.check('key').catch(() => {}));
 ```
 
 ## Key Expiration
@@ -79,9 +93,11 @@ considered finished. This can result in some unexpected behavior, however, if
 the rate is changed from one `check` call to the next.
 
 ```js
-limiter.check('yet-another-key', 1, 1)
+let limiter = new RateLimiter(client);
+
+limiter.check('key', 1, 1)
 	// Wait 2 seconds
 	.then(() => pasync.setTimeout(2000))
 	// Will resolve, even though the rate changed to only one per 10 seconds.
-	.then(() => limiter.check('yet-another-key', 0.1, 1));
+	.then(() => limiter.check('key', 0.1, 1));
 ```

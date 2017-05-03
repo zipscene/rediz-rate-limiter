@@ -4,7 +4,7 @@ const pasync = require('pasync');
 const XError = require('xerror');
 
 describe('RateLimiter', function() {
-	let client, rateLimiter;
+	let client, rateLimiter, keyPattern;
 
 	beforeEach(function() {
 		client = new RedizClient({
@@ -13,11 +13,17 @@ describe('RateLimiter', function() {
 			volatileCluster: false
 		});
 
-		rateLimiter = new RateLimiter(client, 'rsratetest:');
+		rateLimiter = new RateLimiter(client, {
+			prefix: 'test',
+			rate: 10,
+			burst: 3
+		});
+
+		keyPattern = `rzrate:${rateLimiter.prefix}:*`;
 	});
 
 	afterEach(function() {
-		return client.keys(rateLimiter.prefix + '*')
+		return client.keys(keyPattern)
 			.then((keys) => {
 				if (keys.length) return client.del(...keys);
 			});
@@ -31,7 +37,7 @@ describe('RateLimiter', function() {
 	});
 
 	it('decays count at provided rate', function() {
-		let check = () => rateLimiter.check('some-key', 10, 3);
+		let check = () => rateLimiter.check('some-key');
 
 		// Check three times.
 		return pasync.timesSeries(3, check)
@@ -52,15 +58,15 @@ describe('RateLimiter', function() {
 	});
 
 	it('tracks different keys separately', function() {
-		let check = () => rateLimiter.check('some-key', 10, 2);
-		let otherCheck = () => rateLimiter.check('other-key', 10, 2);
+		let check = () => rateLimiter.check('some-key');
+		let otherCheck = () => rateLimiter.check('other-key');
 
 		// Max out check.
-		return pasync.timesSeries(2, check)
+		return pasync.timesSeries(3, check)
 			// Allow check to decay once.
 			.then(() => pasync.setTimeout(100))
 			// Max out otherCheck.
-			.then(() => pasync.timesSeries(2, otherCheck))
+			.then(() => pasync.timesSeries(3, otherCheck))
 			// Let both checks decay once.
 			.then(() => pasync.setTimeout(100))
 			// Max out check again.
@@ -79,7 +85,7 @@ describe('RateLimiter', function() {
 
 		return pasync.timesSeries(3, check)
 			.then(() => pasync.setTimeout(3000))
-			.then(() => client.keys(rateLimiter.prefix + '*'))
+			.then(() => client.keys(keyPattern))
 			.then((keys) => {
 				expect(keys).to.be.empty;
 			});
