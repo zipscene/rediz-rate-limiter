@@ -30,9 +30,23 @@ describe('RateLimiter', function() {
 	});
 
 	it('allows checks up to burst count', function() {
-		let check = () => rateLimiter.check('some-key', 0.1, 2);
+		let check = () => rateLimiter.check('some-key', {
+			rate: 0.1,
+			burst: 2
+		});
 
 		return pasync.timesSeries(2, check)
+			.then(() => testRejection(check));
+	});
+
+	it('supports multiple operations per check', function() {
+		let check = () => rateLimiter.check('some-key', {
+			rate: 0.1,
+			burst: 3,
+			opCount: 2
+		});
+
+		return check()
 			.then(() => testRejection(check));
 	});
 
@@ -81,7 +95,10 @@ describe('RateLimiter', function() {
 
 	it('expires redis keys after count has fully decayed', function() {
 		this.timeout(4000);
-		let check = () => rateLimiter.check('some-key', 1, 3);
+		let check = () => rateLimiter.check('some-key', {
+			rate: 1,
+			burst: 3
+		});
 
 		return pasync.timesSeries(3, check)
 			.then(() => pasync.setTimeout(3000))

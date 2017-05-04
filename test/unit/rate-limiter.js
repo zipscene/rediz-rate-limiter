@@ -68,10 +68,13 @@ describe('RateLimiter', function() {
 			});
 
 			it('runs rateCheck script on appropriate shard', function() {
-				const rate = 0.5;
-				const burst = 2;
+				let options = {
+					rate: 0.5,
+					burst: 2,
+					opCount: 10
+				};
 
-				return rateLimiter.check(key, rate, burst)
+				return rateLimiter.check(key, options)
 					.then(() => {
 						expect(client.shard).to.be.calledOnce;
 						expect(client.shard).to.be.calledOn(client);
@@ -83,13 +86,14 @@ describe('RateLimiter', function() {
 							`rzrate:${key}:count`,
 							`rzrate:${key}:timestamp`,
 							now,
-							rate,
-							burst
+							options.rate,
+							options.burst,
+							options.opCount
 						);
 					});
 			});
 
-			it('uses instance rate and burst if none are provided', function() {
+			it('uses default options none are provided', function() {
 				return rateLimiter.check(key)
 					.then(() => {
 						expect(client.shard).to.be.calledOnce;
@@ -103,17 +107,21 @@ describe('RateLimiter', function() {
 							`rzrate:${key}:timestamp`,
 							now,
 							rateLimiter.rate,
-							rateLimiter.burst
+							rateLimiter.burst,
+							1
 						);
 					});
 			});
 
 			it('prepends prefix to keys, if set', function() {
-				const rate = 0.25;
-				const burst = 1;
+				let options = {
+					rate: 0.25,
+					burst: 1,
+					opCount: 5
+				};
 				rateLimiter.prefix = 'prefix';
 
-				return rateLimiter.check(key, rate, burst)
+				return rateLimiter.check(key, options)
 					.then(() => {
 						expect(client.shard).to.be.calledOnce;
 						expect(client.shard).to.be.calledOn(client);
@@ -125,8 +133,9 @@ describe('RateLimiter', function() {
 							`rzrate:${rateLimiter.prefix}:${key}:count`,
 							`rzrate:${rateLimiter.prefix}:${key}:timestamp`,
 							now,
-							rate,
-							burst
+							options.rate,
+							options.burst,
+							options.opCount
 						);
 					});
 			});

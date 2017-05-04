@@ -2,7 +2,7 @@ local numKeyArgs = 2
 
 -- Arguments:
 -- Keys: <CountKey>, <TimestampKey>
--- Params: <NewTimestamp>, <Rate>, <Burst>
+-- Params: <NewTimestamp>, <Rate>, <Burst>, <OpCount>
 -- Returns:
 -- 0 - Rate check failed, limit exceeded
 -- 1 - Rate check passed, count and timestamp were updated
@@ -12,13 +12,14 @@ local timestamp = tonumber(redis.call('get', KEYS[2]));
 local newTimestamp = tonumber(ARGV[1])
 local rate = tonumber(ARGV[2])
 local burst = tonumber(ARGV[3])
+local opCount = tonumber(ARGV[4])
 
 if count and timestamp then
 	local timePassed = math.max(newTimestamp - timestamp, 0)
 	local periodsPassed = math.floor(timePassed * (rate / 1000))
-	count = math.max(count - periodsPassed, 0) + 1
+	count = math.max(count - periodsPassed, 0) + opCount
 else
-	count = 1
+	count = opCount
 end
 
 if count > burst then
