@@ -3,6 +3,9 @@
 		"node": true,
 		"mocha": true
 	},
+	"globals": {
+		"expect": false
+	},
 	"rules": {
 		"no-unused-expressions": 0	// needed for chai expect
 	}
