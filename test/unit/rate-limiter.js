@@ -4,14 +4,14 @@ const RedizClient = require('rediz');
 const pasync = require('pasync');
 const path = require('path');
 const XError = require('xerror');
-const scriptDir = path.resolve(__dirname, '../../../resources/lua');
+const scriptDir = path.resolve(__dirname, '../../resources/lua');
 
 describe('RateLimiter', function() {
 	let client, sandbox, scriptWaiter;
 
 	beforeEach(function() {
 		client = sinon.createStubInstance(RedizClient);
-		sandbox = sinon.sandbox.create();
+		sandbox = sinon.createSandbox();
 
 		scriptWaiter = pasync.waiter();
 		client.registerScriptDir.returns(scriptWaiter.promise);
